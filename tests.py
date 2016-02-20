@@ -1,4 +1,5 @@
-import unittest, sys
+import unittest
+import sys
 from datetime import datetime, timedelta, timezone
 
 import todo
@@ -49,7 +50,7 @@ class TestDatetimeParsing(unittest.TestCase):
         for u_input, expected in TestDatetimeParsing.input_cases.items():
             result = todo.get_datetime(u_input)
             if expected is not None:
-                # Converting expected manually-entered datetime into UTC
+                # Converting expected manually-entered datetime into UTC
                 expected = datetime.utcfromtimestamp(expected.timestamp())
                 expected = expected.replace(tzinfo=timezone.utc)
 
@@ -100,8 +101,7 @@ class TestContextAnalysis(unittest.TestCase):
         task = Task(1, '')
         for i_vis, vis in enumerate(['hidden', 'discreet', 'wide']):
             task.visibility = vis
-            for (t_ctx, q_ctx), expected in \
-            TestContextAnalysis.relevancy_cases.items():
+            for (t_ctx, q_ctx), expected in TestContextAnalysis.relevancy_cases.items():
                 task.context = t_ctx
                 result = task.is_relevant_to_context(q_ctx)
                 self.assertEqual(result, expected[i_vis])
@@ -124,9 +124,11 @@ class TestTasksSort(unittest.TestCase):
     contexts = {'world': {'p': 2}}
 
     def test_task_sort(self):
-        tasks_cpy = sorted(TestTasksSort.tasks,
-            key=lambda t: t.order_infos(TestTasksSort.contexts))
-        #tasks_cpy.sort(key=lambda t: t.order_infos(TestTasksSort.contexts))
+        tasks_cpy = sorted(
+            TestTasksSort.tasks,
+            key=lambda t: t.order_infos(TestTasksSort.contexts),
+        )
+        # tasks_cpy.sort(key=lambda t: t.order_infos(TestTasksSort.contexts))
         self.assertEqual(tasks_cpy, TestTasksSort.tasks)
 
 
@@ -136,12 +138,17 @@ class TestDispatch(unittest.TestCase):
         '': [('show', {'context': ''})],
         '-c hello': [('show', {'context': 'hello'})],
         '-a hello': [('add_task', {'content': 'hello'})],
-        '-t 1 -p 3': [('get_task_by_id', {'id_': '1'}),
-            ('apply_mutator', {'mutator': 'priority', 'value': 3})],
-        '-d 1': [('get_task_by_id', {'id_': '1'}),
-            ('set_done', {})],
-        '-c hello -p 2': [('apply_context_mutator', {'context': 'hello',
-            'mutator': 'priority', 'value': 2})]
+        '-t 1 -p 3': [
+            ('get_task_by_id', {'id_': '1'}),
+            ('apply_mutator', {'mutator': 'priority', 'value': 3}),
+        ],
+        '-d 1': [
+            ('get_task_by_id', {'id_': '1'}),
+            ('set_done', {}),
+        ],
+        '-c hello -p 2': [
+            ('apply_context_mutator', {'context': 'hello', 'mutator': 'priority', 'value': 2})
+        ]
     }
 
     todolist = todo.TodoList([Task(id_=1, content='')], {})
@@ -171,4 +178,3 @@ def get_trace_handler(list_):
         local = frame.f_locals
         list_.append((f_name, local))
     return handler
-    
