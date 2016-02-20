@@ -1,12 +1,15 @@
 #! /usr/bin/env python3
 
-import argparse
+# python stdlib
 import json
 import os
 import re
-import sys
 import os.path as op
 from datetime import datetime, timezone, timedelta
+
+# 3rd party imports
+from docopt import docopt
+
 
 # We check for the .dev file whose existence indicates that
 # the datafile to use is ~/.doduh/data2.json instead of
@@ -41,12 +44,12 @@ REMAINING_RE = re.compile('\A([0-9]+)([wdhms])\Z')
 # False is the Unicode version.
 CONTEXT_ICON = {True: '#', False: '#'}
 TIME_ICON = {True: '~', False: '⌛'}
-PRIORITY_ICON = {True: '!', False: '★'}
+PRIORITY_ICON = {True: '!', False: '*'}
 
 
 class Task:
 
-    mutators = ['priority', 'deadline', 'start', 'context', 'visibility']
+    mutators = ['--priority', '--deadline', '--start', '--context', '--visibility']
     fast_serial = ['id_', 'content', 'done', 'priority', 'context', 'visibility']
     date_serial = ['created', 'deadline', 'start']
     defaults = {
@@ -73,25 +76,25 @@ class Task:
         self.remaining = self.deadline - NOW
 
     def apply_mutator(self, mutator, value):
-        if mutator == 'priority':
-            self.priority = value
-        elif mutator == 'deadline':
+        if mutator == '--priority':
+            self.priority = int(value)
+        elif mutator == '--deadline':
             dt = get_datetime(value)
 
             if dt is None:
                 raise ValueError('Invalid time format')
             else:
                 self.deadline = dt
-        elif mutator == 'start':
+        elif mutator == '--start':
             dt = get_datetime(value)
 
             if dt is None:
                 raise ValueError('Invalid time format')
             else:
                 self.start = dt
-        elif mutator == 'context':
+        elif mutator == '--context':
             self.context = value
-        elif mutator == 'visibility':
+        elif mutator == '--visibility':
             self.visibility = value
 
     def set_done(self):
@@ -333,70 +336,73 @@ def import_data(data_location):
 
 def dispatch(args, todolist):
     change = True
-    if args.add is not None or args.task is not None:
+
+    if args['add'] or args['--task']:
         # Task Edition
-        if args.add is not None:
+        if args['add']:
             # Task Creation
-            task = todolist.add_task(args.add, NOW)
-        elif args.task is not None:
+            task = todolist.add_task(args['<ADD>'], NOW)
+        elif args['--task']:
             # Task Selection
-            task = todolist.get_task_by_id(args.task)
+            task = todolist.get_task_by_id(args['--task'])
         if task is None:
             print('Task not found')
             return False
-        values = vars(args)
+        values = args
         for mutator in Task.mutators:
-            if values.get(mutator) is not None:
+            if values.get(mutator):
                 task.apply_mutator(mutator, values[mutator])
-    elif args.done is not None:
+    elif args['done']:
         # Task ending
-        task = todolist.get_task_by_id(args.done)
+        task = todolist.get_task_by_id(args['<id>'])
         task.set_done()
-    elif args.context is not None:
+    elif args['--context']:
         # Other context related commands
         changed_something = False
         values = vars(args)
         for mutator in TodoList.context_mutators:
-            if values.get(mutator) is not None:
-                todolist.apply_context_mutator(args.context, mutator, values[mutator])
+            if values.get(mutator):
+                todolist.apply_context_mutator(args['--context'], mutator, values[mutator])
                 changed_something = True
         if not changed_something:
             change = False
-            todolist.show(args.context)
+            todolist.show(args['--context'])
     else:
         change = False
         todolist.show()
+
     return change
 
 
-def parse_args(argv):
-    parser = argparse.ArgumentParser(description='CLI todo list manager')
-    parser.add_argument('-a', '--add',
-        help="Add a task to the todo list")
-    parser.add_argument('--deadline',
-        help="Set the deadline of the task")
-    parser.add_argument('-s', '--start',
-        help="Set the date before which the task's remaining time will be considered to be infinite")
-    parser.add_argument('-c', '--context',
-        help="Set the context of a task")
-    parser.add_argument('-p', '--priority', type=int,
-        help="Set the priority of a task or a context")
-    parser.add_argument('-d', '--done',
-        help="Set a task as done")
-    parser.add_argument('-t', '--task',
-        help="Select a task to alter")
-    parser.add_argument('-v', '--visibility', choices=['hidden', 'discreet', 'wide'],
-        help="Set the visibility of a task: 'hidden', 'discreet' or 'wide'.")
-    args = parser.parse_args(argv)
-    return args
+__docopt__ = """
+usage:
+    todo
+    todo add <ADD> [--deadline DEADLINE] [-s START] [-c CONTEXT]
+        [-p PRIORITY] [-t TASK] [-v VISIBILITY]
+    todo done <id>
+    todo -c <CONTEXT>
+
+optional arguments:
+  -h, --help                               show this help message and exit
+  add <ADD>                                Add a task to the todo list
+  done <id>                                ID of task to set as done
+  --deadline DEADLINE                      Set the deadline of the task
+  -s START, --start START                  Set the date before which the task's remaining time
+                                           will be considered to be infinite
+  -c CONTEXT, --context CONTEXT            Set the context of a task
+  -p PRIORITY, --priority PRIORITY         Set the priority of a task or a context
+  -t TASK, --task TASK                     Select a task to alter
+  -v VISIBILITY, --visibility VISIBILITY   Set the visibility of a task: 'hidden', 'discreet' or 'wide'.
+"""
 
 
 def main():
     tasks, contexts, id_width = import_data(DATA_LOCATION)
     todolist = TodoList(tasks, contexts, id_width)
 
-    args = parse_args(sys.argv[1:])
+    args = docopt(__docopt__, version="2.0.0")
     change = dispatch(args, todolist)
+
     if change:
         todolist.save(DATA_LOCATION)
 
