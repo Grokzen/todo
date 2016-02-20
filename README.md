@@ -3,14 +3,14 @@ todo
 
 A simple command line todo list manager which can be as powerful as you want it do be.
 
-	$ todo -a "Fix the stuff"
+	$ todo add "Fix the stuff"
 	$ todo
 	    1 | Fix the stuff
-	$ todo -a "Fix the other thing"
+	$ todo add "Fix the other thing"
 	$ todo
 	    1 | Fix the stuff
 	    2 | Fix the other thing
-	$ todo -d 1
+	$ todo done 1
 	$ todo
 	    2 | Fix the other thing
 
@@ -22,9 +22,9 @@ Install the `todocli` package for Python 3 via pip.
 
 ## Basic usage
 
-Add a task to do using the `-a` or `--add` option:
+Add a task to do using the `add` option:
 
-	$ todo -a "Do the thing"
+	$ todo add "Do the thing"
 
 See what you have to do by passing no option:
 
@@ -33,14 +33,14 @@ See what you have to do by passing no option:
 
 The tasks shown first are the ones you entered first:
 
-	$ todo -a "Fix the stuff"
+	$ todo add "Fix the stuff"
 	$ todo
 	    1 | Do the thing
 	    2 | Fix the stuff
 
-Set a task as done using the `-d` or `--done` option, with the task's ID as value:
+Set a task as done using the `done` option, with the task's ID as value:
 
-	$ todo -d 1
+	$ todo done 1
 	$ todo
 	    2 | Fix the stuff
 
@@ -49,14 +49,14 @@ Set a task as done using the `-d` or `--done` option, with the task's ID as valu
 
 Set a deadline to a task using the `--deadline` option. The value is a date in the YYYY-MM-DD format:
 
-	$ todo -a "Buy the gift for Stefany" --deadline 2016-02-25
+	$ todo add "Buy the gift for Stefany" --deadline 2016-02-25
 	$ todo
 	    3 | Buy the gift for Stefany ⌛ 16 days remaining
 	    2 | Fix the stuff
 
 Tasks with a deadline show up before tasks with no deadline, and tasks with closer deadlines are shown first. In the following example, a deadline is set using a delay instead of a date. Delays are specified using the letters `s`, `m`, `h`, `d`, `w` which respectively correspond to seconds, minutes, hours, days and weeks.
 
-	$ todo -a "Send the documents for the house" --deadline 1w
+	$ todo add "Send the documents for the house" --deadline 1w
 	$ todo
 	    4 | Send the documents for the house ⌛ 6 days remaining
 	    3 | Buy the gift for Stefany ⌛ 16 days remaining
@@ -66,8 +66,8 @@ Tasks with a deadline show up before tasks with no deadline, and tasks with clos
 
 Let's schedule the buying of a fireworks package for the 4th of July:
 
-	$ todo -a "Buy the fireworks package" --deadline 2016-07-04
-	$ todo 
+	$ todo add "Buy the fireworks package" --deadline 2016-07-04
+	$ todo
 	    4 | Send the documents for the house ⌛ 6 days remaining
 	    3 | Buy the gift for Stefany ⌛ 16 days remaining
 	    5 | Buy the fireworks package ⌛ 146 days remaining
@@ -85,13 +85,13 @@ You can use the `-s` or `--start` option in order to set a start-point to the ta
 
 The task won't show up until 2016-06-15.
 
-In this example, we used the `-t` (`--task`) option to select a task to apply a modifier to. All the modifiers available when creating a task with the `-a` option are also available when selecting a task with the `-t` option.
+In this example, we used the `-t` (`--task`) option to select a task to apply a modifier to. All the modifiers available when creating a task with the `add` option are also available when selecting a task with the `-t` option.
 
 ## Priority
 
 You can assign a priority to a task using the `-p` or `--priority` option. Priorities are integers; the higher the integer, the higher the priority. Tasks with a higher priority are shown first. By default, tasks have a priority of 1.
 
-	$ todo -a "Fix the window" -p 3
+	$ todo add "Fix the window" -p 3
 	$ todo
 	    6 | Fix the window ★3
 	    4 | Send the documents for the house ⌛ 6 days remaining
@@ -108,7 +108,7 @@ You can assign a priority to a task using the `-p` or `--priority` option. Prior
 
 You can assign a context to a task using the `-c` or `--context` option. Contexts are strings.
 
-	$ todo -a "Read the article about chemistry" -c culture
+	$ todo add "Read the article about chemistry" -c culture
 	$ todo
 	    6 | Fix the window ★3
 	    2 | Fix the stuff ★2
@@ -128,7 +128,7 @@ You can define contexts within contexts using the dot notation:
 	$ todo -t 7 -c culture.chemistry
 	$ todo -c culture
 	    7 | Read the article about chemistry #culture.chemistry
-	$ todo -a "Listen to the podcast about movies" -c culture.cinema
+	$ todo add "Listen to the podcast about movies" -c culture.cinema
 	$ todo -c culture
 	    7 | Read the article about chemistry #culture.chemistry
 	    8 | Listen to the podcast about movies #culture.cinema
